@@ -1,41 +1,50 @@
 import os
-import discord
-from discord.ext import commands
+import time
+import sys
+from core.bot import create_bot
 
 TOKEN = os.getenv("TOKEN")
 
 if not TOKEN:
     raise RuntimeError("Missing TOKEN")
 
+# =========================
+# DEPLOY MARKER (chống restart loop Render)
+# =========================
+print("DEPLOY VERSION: 2026-04-20-STABLE-ANTI_LOOP")
 
-def create_bot():
-    intents = discord.Intents.all()
-    bot = commands.Bot(command_prefix="!", intents=intents)
+# chống Render restart spam login
+BOOT_LOCK = "/tmp/bot.lock"
 
-    @bot.event
-    async def on_ready():
-        print(f"BOT ONLINE: {bot.user} ({bot.user.id})")
+if os.path.exists(BOOT_LOCK):
+    print("BOT BLOCKED: restart loop detected")
+    time.sleep(999999)
+    sys.exit(0)
 
-    @bot.event
-    async def on_message(message):
-        if message.author.bot:
-            return
+with open(BOOT_LOCK, "w") as f:
+    f.write(str(time.time()))
 
-        print(f"[MSG] {message.author}: {message.content}")
+# =========================
+# BOT RUNNER
+# =========================
+def run_bot():
+    while True:
+        try:
+            bot = create_bot()
 
-        await bot.process_commands(message)
+            print("BOT STARTING...")
 
-    return bot
+            bot.run(TOKEN)
 
+        except Exception as e:
+            print("BOT CRASHED:", repr(e))
 
-def run():
-    bot = create_bot()
+            # nếu crash → đợi lâu để tránh Discord rate limit
+            time.sleep(90)
 
-    try:
-        bot.run(TOKEN)
-    except Exception as e:
-        print("BOT CRASHED:", repr(e))
+            # restart lại bot instance an toàn
+            continue
 
 
 if __name__ == "__main__":
-    run()
+    run_bot()
