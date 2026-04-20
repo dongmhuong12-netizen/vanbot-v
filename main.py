@@ -1,48 +1,38 @@
 import os
 import time
 import sys
-from core.bot import create_bot
+import discord
 
 TOKEN = os.getenv("TOKEN")
 
 if not TOKEN:
     raise RuntimeError("Missing TOKEN")
 
-# =========================
-# DEPLOY MARKER (chống restart loop Render)
-# =========================
-print("DEPLOY VERSION: 2026-04-20-STABLE-ANTI_LOOP")
+intents = discord.Intents.default()
+intents.message_content = True
+intents.guilds = True
 
-# chống Render restart spam login
-BOOT_LOCK = "/tmp/bot.lock"
+class MyBot(discord.Client):
+    async def on_ready(self):
+        print(f"BOT ONLINE: {self.user} | ID: {self.user.id}")
 
-if os.path.exists(BOOT_LOCK):
-    print("BOT BLOCKED: restart loop detected")
-    time.sleep(999999)
-    sys.exit(0)
+    async def on_message(self, message):
+        # test bot sống
+        if message.author.bot:
+            return
 
-with open(BOOT_LOCK, "w") as f:
-    f.write(str(time.time()))
+        if message.content == "!ping":
+            await message.channel.send("pong")
 
-# =========================
-# BOT RUNNER
-# =========================
 def run_bot():
     while True:
         try:
-            bot = create_bot()
-
-            print("BOT STARTING...")
-
+            bot = MyBot(intents=intents)
             bot.run(TOKEN)
 
         except Exception as e:
             print("BOT CRASHED:", repr(e))
-
-            # nếu crash → đợi lâu để tránh Discord rate limit
-            time.sleep(90)
-
-            # restart lại bot instance an toàn
+            time.sleep(60)
             continue
 
 
