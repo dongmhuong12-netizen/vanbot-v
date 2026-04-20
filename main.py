@@ -1,68 +1,27 @@
-import discord
-from discord.ext import commands
 import os
+import time
 import sys
+from core.bot import create_bot
 
-# ===== LOAD TOKEN =====
 TOKEN = os.getenv("TOKEN")
 
 if not TOKEN:
-    print("ERROR: TOKEN is missing or not loaded")
-    sys.exit(1)
+    raise RuntimeError("Missing TOKEN")
 
-# ===== INTENTS =====
-intents = discord.Intents.default()
-intents.message_content = True
-intents.members = True
+def run_bot():
+    bot = create_bot()
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+    try:
+        bot.run(TOKEN)
 
-# ===== READY =====
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    print("Bot is ready.")
+    except Exception as e:
+        print("BOT CRASHED:", repr(e))
 
-# ===== TEST COMMAND =====
-@bot.command()
-async def ping(ctx):
-    await ctx.send("pong")
+        # 🔥 CRITICAL FIX: chống login loop
+        time.sleep(30)
 
-# ===== WARN SYSTEM (BASE) =====
-warn_data = {}
+        # exit để Render restart nhưng có delay
+        sys.exit(1)
 
-def get_user_warns(guild_id, user_id):
-    return warn_data.get(guild_id, {}).get(user_id, [])
-
-def add_warn(guild_id, user_id, reason):
-    warn_data.setdefault(guild_id, {}).setdefault(user_id, []).append(reason)
-
-@bot.command()
-@commands.has_permissions(manage_messages=True)
-async def warn(ctx, member: discord.Member, *, reason="No reason"):
-    add_warn(ctx.guild.id, member.id, reason)
-    warns = get_user_warns(ctx.guild.id, member.id)
-
-    await ctx.send(
-        f"{member.mention} đã bị warn.\n"
-        f"Lý do: {reason}\n"
-        f"Tổng warn: {len(warns)}"
-    )
-
-@bot.command()
-async def warns(ctx, member: discord.Member):
-    warns = get_user_warns(ctx.guild.id, member.id)
-
-    if not warns:
-        await ctx.send("User chưa có warn nào.")
-        return
-
-    msg = "\n".join([f"{i+1}. {w}" for i, w in enumerate(warns)])
-    await ctx.send(f"Warn của {member}:\n{msg}")
-
-# ===== RUN BOT (DEBUG SAFE) =====
-try:
-    bot.run(TOKEN)
-except Exception as e:
-    print(f"BOT CRASHED: {e}")
-    raise e
+if __name__ == "__main__":
+    run_bot()
