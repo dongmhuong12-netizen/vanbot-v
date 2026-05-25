@@ -7,6 +7,28 @@ from aiohttp import web
 from motor.motor_asyncio import AsyncIOMotorClient
 import time
 
+# ==========================================
+# [GIẢI PHÁP TỐI THƯỢNG] TỰ CẠY FILE .ENV
+# ==========================================
+basedir = os.path.abspath(os.path.dirname(__file__))
+env_path = os.path.join(basedir, '.env')
+
+_TOKEN = None
+_MONGO_URI = None
+
+if os.path.exists(env_path):
+    with open(env_path, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("TOKEN="):
+                _TOKEN = line.split("=", 1)[1].strip(' "\'')
+            elif line.startswith("MONGO_URI="):
+                _MONGO_URI = line.split("=", 1)[1].strip(' "\'')
+
+if _TOKEN: os.environ["TOKEN"] = _TOKEN
+if _MONGO_URI: os.environ["MONGO_URI"] = _MONGO_URI
+# ==========================================
+
 TOKEN = os.getenv("TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
 
@@ -15,7 +37,7 @@ class JinBot(commands.Bot):
         intents = discord.Intents.default()
         intents.message_content = True
         intents.members = True
-        super().__init__(command_prefix="!", intents=intents, help_command=None)
+        super().__init__(command_prefix="!", intents=intents, help_command=None, status=discord.Status.idle)
         
         # Tư duy IT: Khởi tạo sẵn thuộc tính để tránh AttributeError khi hệ thống chưa boot xong DB
         self.db_client = None
