@@ -74,7 +74,7 @@ async def main():
     app.add_routes([web.get("/", handle)])
     runner = web.AppRunner(app)
     await runner.setup()
-    await web.TCPSite(runner, "0.0.0.0", 10000).start()
+    await web.TCPSite(runner, "0.0.0.0", 10005).start()
     
     try:
         async with bot: 
