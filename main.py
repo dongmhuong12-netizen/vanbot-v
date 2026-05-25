@@ -42,6 +42,7 @@ class JinBot(commands.Bot):
         # Tư duy IT: Khởi tạo sẵn thuộc tính để tránh AttributeError khi hệ thống chưa boot xong DB
         self.db_client = None
         self.db = None
+        self.status_index = 0
 
     async def setup_hook(self):
         # 1. Kết nối MongoDB Async
@@ -68,9 +69,31 @@ class JinBot(commands.Bot):
     async def on_ready(self):
         print(f"🚀 {self.user.name} đã sẵn sàng trừng phạt.")
         await self.tree.sync()
+        
         # Chạy task quét rác 5p/lần
         if not self.decay_cleaner.is_running():
             self.decay_cleaner.start()
+            
+        # Khởi động vòng lặp trạng thái
+        if not self.rotate_status.is_running():
+            self.rotate_status.start()
+
+    @tasks.loop(seconds=30)
+    async def rotate_status(self):
+        """Hệ thống xoay vòng trạng thái tối ưu cho Multi-server"""
+        try:
+            statuses = ["antispam", "jin system", "hệ thống an ninh"]
+            current_text = statuses[self.status_index % len(statuses)]
+            self.status_index += 1
+            
+            activity = discord.CustomActivity(name=current_text)
+            await self.change_presence(status=discord.Status.dnd, activity=activity)
+        except Exception as e:
+            print(f"[STATUS ERROR] {e}", flush=True)
+
+    @rotate_status.before_loop
+    async def before_rotate_status(self):
+        await self.wait_until_ready()
 
     @tasks.loop(minutes=5.0)
     async def decay_cleaner(self):
