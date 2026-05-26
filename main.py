@@ -50,7 +50,7 @@ class JinBot(commands.Bot):
         self.db = self.db_client.Jin_Ultimate_Database
         
         # 2. Nạp các module hệ thống (Đã bổ sung cogs.warn_setup)
-        exts = ['cogs.status', 'cogs.antispam', 'cogs.antispam_config', 'cogs.warn_setup']
+        exts = ['cogs.status', 'cogs.antispam', 'cogs.antispam_config', 'cogs.warn_setup', 'cogs.antimarket']
         for ext in exts:
             try:
                 await self.load_extension(ext)
