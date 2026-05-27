@@ -4,12 +4,11 @@ from discord import app_commands
 from discord.ext import commands
 import re
 import aiohttp
-import os
 from utils.emojis import Emojis
 from constants import COLOR_GENERAL
 
-# Đọc cấu hình ID Server Kho Chứa từ file môi trường VPS (.env)
-VAULT_GUILD_ID = int(os.getenv("VAULT_GUILD_ID", 0))
+# [CẤU HÌNH CỨNG] ID Server Kho Chứa trung tâm toàn cục
+VAULT_GUILD_ID = 1448334943200743456  # <-- Sếp dán ID Server Kho của sếp vào đây nhe
 # Đóng đinh Thực thể tối cao sở hữu hệ thống Jin
 OWNER_ID = 1055476307372294155
 
@@ -82,14 +81,14 @@ class DevEmojis(commands.Cog):
         if existing:
             return await interaction.followup.send(embed=discord.Embed(
                 title="⚠️ Biến đã tồn tại",
-                description=f"Từ khóa đặt tên `{var_name_clean}` đã được đăng ký trong hệ thống động.",
+                description=f"Tên biến `{var_name_clean}` đã được đăng ký trong hệ thống động.",
                 color=COLOR_GENERAL
             ))
 
         if VAULT_GUILD_ID == 0:
             return await interaction.followup.send(embed=discord.Embed(
                 title="❌ Lỗi cấu hình hạ tầng",
-                description="Biến môi trường `VAULT_GUILD_ID` chưa được thiết lập chính xác trong file `.env`.",
+                description="ID Server Kho Chứa `VAULT_GUILD_ID` chưa được thiết lập chính xác trong mã nguồn.",
                 color=COLOR_GENERAL
             ))
 
@@ -107,7 +106,7 @@ class DevEmojis(commands.Cog):
 
             vault_guild = self.bot.get_guild(VAULT_GUILD_ID)
             if not vault_guild:
-                raise Exception("Bot không tìm thấy Server Kho Chứa. Hãy kiểm tra lại ID Guild trong file .env")
+                raise Exception("Bot không tìm thấy Server Kho Chứa. Hãy kiểm tra lại ID Guild cấu hình trong code.")
 
             # Tạo lệnh đúc thực thể bất tử lên hệ thống hạ tầng server kho
             new_emoji = await vault_guild.create_custom_emoji(
@@ -139,7 +138,7 @@ class DevEmojis(commands.Cog):
 
         except Exception as e:
             await interaction.followup.send(embed=discord.Embed(
-                title="❌ Nghẽn mạch xử lý đúc asset",
+                title="❌ Lỗi xử lý đúc asset",
                 description=f"Tiến trình ngầm gặp sự cố khi tải hoặc đúc tài nguyên: `{str(e)}`",
                 color=COLOR_GENERAL
             ))
