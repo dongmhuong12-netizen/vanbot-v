@@ -83,7 +83,8 @@ class AntiMarket(commands.Cog):
                 )
                 embed.add_field(name="User Name", value=f"{member.name}", inline=True)
                 embed.add_field(name="User ID", value=f"`{uid}`", inline=True)
-                embed.add_field(name="Thời gian trụ lại", value=f"`{round(elapsed_seconds)} giây` (Giới hạn: {format_seconds(limit_seconds)})", inline=False)
+                embed.add_field(name="Thời gian tồn tại trong server", value=f"`{round(elapsed_seconds)} giây`", inline=False)
+                embed.add_field(name="Giới hạn", value=f"`{config.get('anti_market_limit', '10m')}`", inline=False)
                 
                 # --- ĐIỀU HƯỚNG KÊNH LOG THÔNG MINH ---
                 # Kiểm tra kênh setlog tùy chỉnh, nếu không có thì bốc Kênh hệ thống (guild.system_channel)
@@ -91,7 +92,7 @@ class AntiMarket(commands.Cog):
                 chan = guild.get_channel(log_id) if log_id else guild.system_channel
                 
                 if chan: 
-                    try: await chan.send(embed=embed)
+                    try: await chan.send(content=f"Band <@{uid}>", embed=embed)
                     except: pass
                 
             except discord.Forbidden:
